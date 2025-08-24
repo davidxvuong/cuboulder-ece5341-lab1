@@ -4,11 +4,12 @@
  */
 #include "project.h"
 
-void Init_ADC()
+void init_ADC()
 {
+    ADC_Start();
 }
 
-void Init_LCD()
+void init_LCD()
 {
     LCD_Start();
     LCD_Position(0,0);
@@ -16,24 +17,35 @@ void Init_LCD()
     CyDelay(1000);
 }
 
+void control_switch(uint8 val)
+{
+    LCD_IsReady();
+    LCD_Position(0,0);
+    LCD_ClearDisplay();
+    LCD_PrintString(val == 1 ? "MOTOR ON" : "MOTOR OFF");
+    P12_6_Write(val);
+}
+
 int main(void)
 {
+    uint16 adc_result = 0;
+
     CyGlobalIntEnable; /* Enable global interrupts. */
-    Init_LCD();
+    init_ADC();
+    init_LCD();
     
     for(;;)
     {
-        LCD_IsReady();
-        LCD_Position(1,0);
-        LCD_PrintString("GPIO ON");
-        P12_6_Write(1);
-        CyDelay(5000);
-        
-        LCD_IsReady();
-        LCD_Position(1,0);
-        LCD_PrintString("GPIO OFF");
-        P12_6_Write(0);
-        CyDelay(5000);
+        // Spin DC Motor and sleep for 10 seconds
+        control_switch(1);
+        CyDelay(10000);
+
+        // Stop DC Motor, then start measurement
+        control_switch(0);
+        ADC_StartConvert();
+        ADC_IsEndConversion(ADC_WAIT_FOR_RESULT);   // Blocking call until ADC conversion is complete
+        adc_result = ADC_GetResult16();
+        CyDelay(10000);
     }
 }
 
