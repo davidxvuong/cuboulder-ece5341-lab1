@@ -7,6 +7,7 @@
 #include "float.h"
 
 #define BACK_EMF_CONSTANT   0.3466f             // mV/RPM
+#define V_REF               1024.0f             // mV
 #define LCD_CLEAR_LINE      "                "
 
 void init_ADC()
@@ -61,6 +62,7 @@ int main(void)
         LCD_PrintString(LCD_CLEAR_LINE);
         LCD_Position(1,0);
         LCD_PrintNumber((int16)speed);
+        CyDelay(1000);
     }
 }
 
